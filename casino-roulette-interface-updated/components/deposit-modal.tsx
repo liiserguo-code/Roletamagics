@@ -20,8 +20,6 @@ const DEPOSIT_OPTIONS = [
 
 const PAYMENT_METHODS = [
   { id: 'pix', name: 'PIX', icon: Smartphone, instant: true, description: 'Pagamento instantâneo' },
-  { id: 'card', name: 'Cartão', icon: CreditCard, instant: false, description: 'Até 5 minutos' },
-  { id: 'crypto', name: 'Cripto', icon: DollarSign, instant: false, description: 'Até 30 minutos' },
 ]
 
 export function DepositModal({ isOpen, onClose, onDepositSuccess }: DepositModalProps) {
