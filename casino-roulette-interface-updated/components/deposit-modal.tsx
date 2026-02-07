@@ -72,7 +72,7 @@ export function DepositModal({ isOpen, onClose, onDepositSuccess }: DepositModal
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in overflow-y-auto"
       style={{
         background: 'rgba(0, 0, 0, 0.85)',
         backdropFilter: 'blur(12px)',
@@ -80,7 +80,7 @@ export function DepositModal({ isOpen, onClose, onDepositSuccess }: DepositModal
       onClick={onClose}
     >
       <div 
-        className="relative w-full max-w-lg animate-slide-up"
+        className="relative w-full max-w-lg animate-slide-up my-8"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Success overlay */}
@@ -105,7 +105,7 @@ export function DepositModal({ isOpen, onClose, onDepositSuccess }: DepositModal
 
         {/* Main modal */}
         <div 
-          className="glass-card rounded-2xl overflow-hidden"
+          className="glass-card rounded-2xl overflow-hidden max-h-[90vh] flex flex-col"
           style={{
             boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)',
           }}
@@ -139,7 +139,7 @@ export function DepositModal({ isOpen, onClose, onDepositSuccess }: DepositModal
           </div>
 
           {/* Content */}
-          <div className="p-6">
+          <div className="p-6 overflow-y-auto">
             {/* Benefits */}
             <div className="grid grid-cols-3 gap-3 mb-6">
               <div className="glass-card rounded-xl p-3 text-center">
