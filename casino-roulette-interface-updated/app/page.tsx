@@ -7,6 +7,7 @@ import { GameControls } from "@/components/game-controls"
 import { RegisterModal } from "@/components/register-modal"
 import { DepositModal } from "@/components/deposit-modal"
 import { FloatingNotification } from "@/components/floating-notification"
+import { useAudio } from "@/hooks/use-audio"
 import { User, LogOut } from "lucide-react"
 
 interface AuthUser {
@@ -16,6 +17,7 @@ interface AuthUser {
 }
 
 export default function Home() {
+  const { playSpin, playWin, playLoss } = useAudio()
   const [balance, setBalance] = useState(0)
   const [betAmount, setBetAmount] = useState(0.50)
   const [gain, setGain] = useState<number | null>(null)
@@ -47,11 +49,12 @@ export default function Home() {
       return false
     }
 
+    playSpin()
     setIsSpinning(true)
     setBalance(prev => prev - betAmount)
     setGain(null)
     return true
-  }, [balance, betAmount, currentUser])
+  }, [balance, betAmount, currentUser, playSpin])
 
   const handleSpinComplete = useCallback((outerValue: string, innerValue: string) => {
     setIsSpinning(false)
@@ -62,6 +65,7 @@ export default function Home() {
     
     // If outer is 0x, lose based on inner multiplier (can lose more than bet)
     if (outerMultiplier === 0) {
+      playLoss()
       const lossMultiplier = innerMultiplier // 1x to 4x loss
       const lossAmount = betAmount * lossMultiplier
       setGain(-lossAmount)
@@ -69,12 +73,13 @@ export default function Home() {
       return
     }
     
+    playWin()
     const totalMultiplier = outerMultiplier * innerMultiplier
     const winAmount = betAmount * totalMultiplier
     
     setGain(winAmount)
     setBalance(prev => prev + winAmount)
-  }, [betAmount])
+  }, [betAmount, playWin, playLoss])
 
   const handleDeposit = useCallback(() => {
     setShowDeposit(true)

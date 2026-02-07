@@ -56,14 +56,14 @@ export function RouletteWheel({ onSpinComplete, isSpinning, onSpin }: RouletteWh
     setFinalOuterValue(null)
     setFinalInnerValue(null)
 
-    // Weighted probability for outer wheel (heavily favors 0x loss)
-    // 0x: 72%, 2x: 15%, 5x: 7%, 10x: 3.5%, 15x: 1.5%, 20x: 0.8%, 50x: 0.2%
-    const outerWeights = [72, 15, 7, 3.5, 1.5, 0.8, 0.2]
+    // Weighted probability for outer wheel (extremely high loss rate)
+    // 0x: 95%, 2x: 3%, 5x: 1.2%, 10x: 0.5%, 15x: 0.2%, 20x: 0.08%, 50x: 0.02%
+    const outerWeights = [95, 3, 1.2, 0.5, 0.2, 0.08, 0.02]
     const outerFinal = pickWeightedIndex(outerWeights)
 
-    // Weighted probability for inner wheel (heavily favors lower multipliers)
-    // 1x: 65%, 2x: 25%, 3x: 8%, 4x: 2%
-    const innerWeights = [65, 25, 8, 2]
+    // Weighted probability for inner wheel (favors higher loss multipliers)
+    // 1x: 10%, 2x: 25%, 3x: 35%, 4x: 30%
+    const innerWeights = [10, 25, 35, 30]
     const innerFinal = pickWeightedIndex(innerWeights)
 
     // Make the wheel land on the CENTER of the chosen segment (with a small jitter),

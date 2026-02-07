@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 
 interface Particle {
   id: number
@@ -21,80 +21,96 @@ interface Star {
 }
 
 export function LuxuryBackground() {
-  const [particles, setParticles] = useState<Particle[]>([])
-  const [stars, setStars] = useState<Star[]>([])
+  const [mounted, setMounted] = useState(false)
+
+  // Generate particles and stars only once using useMemo
+  const particles = useMemo<Particle[]>(() => 
+    Array.from({ length: 80 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 5 + 2,
+      delay: Math.random() * 8,
+      duration: Math.random() * 6 + 4,
+      opacity: Math.random() * 0.6 + 0.3,
+    })), 
+  [])
+
+  const stars = useMemo<Star[]>(() => 
+    Array.from({ length: 120 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 3 + 1,
+      delay: Math.random() * 5,
+    })),
+  [])
 
   useEffect(() => {
-    // Gold floating particles
-    const newParticles: Particle[] = Array.from({ length: 40 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 4 + 2,
-      delay: Math.random() * 8,
-      duration: Math.random() * 6 + 6,
-      opacity: Math.random() * 0.4 + 0.2,
-    }))
-    setParticles(newParticles)
-
-    // Twinkling stars
-    const newStars: Star[] = Array.from({ length: 60 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 2 + 1,
-      delay: Math.random() * 5,
-    }))
-    setStars(newStars)
+    setMounted(true)
   }, [])
+
+  if (!mounted) return null
 
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
       {/* Deep black base gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#050508] via-[#0B0B0F] to-[#080810]" />
       
-      {/* Animated mesh gradient */}
+      {/* Animated mesh gradient (more vibrant) */}
       <div 
-        className="absolute inset-0 opacity-30"
+        className="absolute inset-0 opacity-50"
         style={{
           background: `
-            radial-gradient(ellipse 80% 50% at 20% 40%, rgba(147, 51, 234, 0.15) 0%, transparent 50%),
-            radial-gradient(ellipse 60% 40% at 80% 60%, rgba(212, 175, 55, 0.1) 0%, transparent 50%),
-            radial-gradient(ellipse 50% 30% at 50% 80%, rgba(5, 150, 105, 0.1) 0%, transparent 50%)
+            radial-gradient(ellipse 80% 50% at 20% 40%, rgba(147, 51, 234, 0.3) 0%, transparent 50%),
+            radial-gradient(ellipse 60% 40% at 80% 60%, rgba(212, 175, 55, 0.25) 0%, transparent 50%),
+            radial-gradient(ellipse 50% 30% at 50% 80%, rgba(5, 150, 105, 0.2) 0%, transparent 50%),
+            radial-gradient(ellipse 70% 45% at 50% 20%, rgba(244, 63, 94, 0.15) 0%, transparent 50%)
           `,
         }}
       />
 
-      {/* Large animated orbs */}
+      {/* Large animated orbs (more vibrant and larger) */}
       <div 
-        className="absolute w-[800px] h-[800px] rounded-full animate-float opacity-20"
+        className="absolute w-[1000px] h-[1000px] rounded-full animate-float opacity-35"
         style={{
-          top: '-20%',
-          left: '-10%',
-          background: 'radial-gradient(circle, rgba(147, 51, 234, 0.3) 0%, rgba(147, 51, 234, 0.1) 40%, transparent 70%)',
-          filter: 'blur(40px)',
+          top: '-25%',
+          left: '-15%',
+          background: 'radial-gradient(circle, rgba(147, 51, 234, 0.5) 0%, rgba(147, 51, 234, 0.2) 40%, transparent 70%)',
+          filter: 'blur(50px)',
         }}
       />
       <div 
-        className="absolute w-[600px] h-[600px] rounded-full animate-float opacity-15"
+        className="absolute w-[800px] h-[800px] rounded-full animate-float opacity-30"
         style={{
-          bottom: '-15%',
-          right: '-10%',
-          background: 'radial-gradient(circle, rgba(212, 175, 55, 0.4) 0%, rgba(212, 175, 55, 0.1) 40%, transparent 70%)',
-          filter: 'blur(60px)',
+          bottom: '-20%',
+          right: '-15%',
+          background: 'radial-gradient(circle, rgba(212, 175, 55, 0.6) 0%, rgba(212, 175, 55, 0.2) 40%, transparent 70%)',
+          filter: 'blur(70px)',
           animationDelay: '2s',
           animationDirection: 'reverse',
         }}
       />
       <div 
-        className="absolute w-[400px] h-[400px] rounded-full animate-float opacity-10"
+        className="absolute w-[600px] h-[600px] rounded-full animate-float opacity-25"
         style={{
           top: '40%',
           left: '50%',
           transform: 'translateX(-50%)',
-          background: 'radial-gradient(circle, rgba(5, 150, 105, 0.4) 0%, transparent 70%)',
-          filter: 'blur(50px)',
+          background: 'radial-gradient(circle, rgba(5, 150, 105, 0.6) 0%, transparent 70%)',
+          filter: 'blur(60px)',
           animationDelay: '4s',
+        }}
+      />
+      <div 
+        className="absolute w-[700px] h-[700px] rounded-full animate-float opacity-20"
+        style={{
+          top: '10%',
+          right: '20%',
+          background: 'radial-gradient(circle, rgba(244, 63, 94, 0.5) 0%, transparent 70%)',
+          filter: 'blur(65px)',
+          animationDelay: '6s',
+          animationDirection: 'reverse',
         }}
       />
 
