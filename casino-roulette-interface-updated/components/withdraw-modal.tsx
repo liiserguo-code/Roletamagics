@@ -30,6 +30,8 @@ export function WithdrawModal({
   const [customAmount, setCustomAmount] = useState("")
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [pixKey, setPixKey] = useState("")
+  const [pixKeyType, setPixKeyType] = useState<'cpf' | 'email' | 'phone' | 'random'>('cpf')
 
   if (!isOpen) return null
 
