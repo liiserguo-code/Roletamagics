@@ -176,12 +176,7 @@ export default function Home() {
           
           {/* Spin button below wheel */}
           <button
-            onClick={() => {
-              console.log("[v0] Spin button clicked")
-              console.log("[v0] Balance:", balance, "Bet Amount:", betAmount, "Is Spinning:", isSpinning)
-              const canSpin = handleSpin()
-              console.log("[v0] Can spin:", canSpin)
-            }}
+            onClick={handleSpin}
             disabled={isSpinning}
             className="relative px-12 py-4 rounded-2xl font-bold text-lg tracking-widest uppercase overflow-hidden group disabled:cursor-not-allowed disabled:opacity-50 hover:scale-105 transition-all duration-300"
             style={{
