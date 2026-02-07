@@ -1,13 +1,8 @@
 "use client"
 
-import { useState, useCallback } from "react"
-import { X, Smartphone, DollarSign, Check, Zap, Shield, Clock } from "lucide-react"
-import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js"
-import { loadStripe } from "@stripe/stripe-js"
-import { createDepositSession } from "@/app/actions/stripe"
+import { useState } from "react"
+import { X, Smartphone, DollarSign, Zap, Shield, Clock } from "lucide-react"
 import { DEPOSIT_PACKAGES } from "@/lib/deposit-packages"
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 interface DepositModalProps {
   isOpen: boolean
@@ -18,42 +13,37 @@ interface DepositModalProps {
 export function DepositModal({ isOpen, onClose, onDepositSuccess }: DepositModalProps) {
   const [selectedPackageId, setSelectedPackageId] = useState<string>('deposit-100')
   const [customAmount, setCustomAmount] = useState("")
-  const [showCheckout, setShowCheckout] = useState(false)
-  const [clientSecret, setClientSecret] = useState<string | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
 
   if (!isOpen) return null
 
-  const handleStartCheckout = async () => {
-    try {
-      const packageId = customAmount ? 'custom' : selectedPackageId
-      const amount = customAmount ? parseFloat(customAmount) : undefined
+  const handleDeposit = () => {
+    const packageId = customAmount ? 'custom' : selectedPackageId
+    const depositAmount = customAmount ? parseFloat(customAmount) : undefined
 
-      if (packageId === 'custom' && (!amount || amount < 10)) {
-        alert("Valor mínimo de depósito é R$ 10,00")
-        return
-      }
+    if (packageId === 'custom' && (!depositAmount || depositAmount < 10)) {
+      alert("Valor mínimo de depósito é R$ 10,00")
+      return
+    }
 
-      const { clientSecret } = await createDepositSession(packageId, amount)
+    setIsProcessing(true)
+
+    // Simulate payment processing (for demo purposes)
+    setTimeout(() => {
+      const pkg = customAmount 
+        ? { amount: depositAmount || 0, bonus: 0 }
+        : DEPOSIT_PACKAGES.find(p => p.id === selectedPackageId) || { amount: 0, bonus: 0 }
       
-      if (clientSecret) {
-        setClientSecret(clientSecret)
-        setShowCheckout(true)
-      }
-    } catch (error) {
-      console.error('[v0] Error starting checkout:', error)
-      alert('Erro ao iniciar pagamento. Tente novamente.')
-    }
+      const totalWithBonus = pkg.amount + (pkg.amount * pkg.bonus) / 100
+      
+      onDepositSuccess(totalWithBonus)
+      setIsProcessing(false)
+      onClose()
+      
+      // Show success message
+      alert(`Depósito de R$ ${totalWithBonus.toFixed(2)} realizado com sucesso!`)
+    }, 2000)
   }
-
-  const fetchClientSecret = useCallback(async () => {
-    if (!clientSecret) {
-      const packageId = customAmount ? 'custom' : selectedPackageId
-      const amount = customAmount ? parseFloat(customAmount) : undefined
-      const { clientSecret: newClientSecret } = await createDepositSession(packageId, amount)
-      return newClientSecret || ''
-    }
-    return clientSecret
-  }, [clientSecret, customAmount, selectedPackageId])
 
   const getSelectedPackage = () => {
     return DEPOSIT_PACKAGES.find(pkg => pkg.id === selectedPackageId)
@@ -71,73 +61,6 @@ export function DepositModal({ isOpen, onClose, onDepositSuccess }: DepositModal
   }
 
   const { amount, bonus, total } = getDisplayAmount()
-
-  // Checkout view
-  if (showCheckout) {
-    return (
-      <div 
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in overflow-y-auto"
-        style={{
-          background: 'rgba(0, 0, 0, 0.85)',
-          backdropFilter: 'blur(12px)',
-        }}
-      >
-        <div 
-          className="relative w-full max-w-2xl animate-slide-up my-8"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div 
-            className="glass-card rounded-2xl overflow-hidden"
-            style={{
-              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)',
-            }}
-          >
-            {/* Header */}
-            <div 
-              className="relative px-6 py-5 border-b border-white/10"
-              style={{
-                background: 'linear-gradient(135deg, #1A1A24 0%, #12121A 100%)',
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg gold-gradient">
-                    <Zap className="w-5 h-5 text-[#0B0B0F]" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold gold-text">Finalizar Pagamento</h2>
-                    <p className="text-xs text-[#A0A0A0]">R$ {total.toFixed(2).replace('.', ',')} total</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowCheckout(false)
-                    setClientSecret(null)
-                  }}
-                  className="p-2 rounded-lg hover:bg-white/5 transition-colors"
-                  aria-label="Voltar"
-                >
-                  <X className="w-5 h-5 text-[#A0A0A0] hover:text-[#D4AF37]" />
-                </button>
-              </div>
-            </div>
-
-            {/* Stripe Checkout */}
-            <div className="p-6 bg-white rounded-b-2xl">
-              <EmbeddedCheckoutProvider
-                stripe={stripePromise}
-                options={{ fetchClientSecret }}
-              >
-                <EmbeddedCheckout />
-              </EmbeddedCheckoutProvider>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Selection view
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in overflow-y-auto"
@@ -318,8 +241,8 @@ export function DepositModal({ isOpen, onClose, onDepositSuccess }: DepositModal
 
             {/* Deposit button */}
             <button
-              onClick={handleStartCheckout}
-              disabled={!amount || amount < 10}
+              onClick={handleDeposit}
+              disabled={!amount || amount < 10 || isProcessing}
               className="w-full py-4 px-6 rounded-xl font-bold text-lg tracking-wider relative overflow-hidden group transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 background: 'linear-gradient(135deg, #F7E98E 0%, #D4AF37 50%, #996515 100%)',
@@ -327,8 +250,17 @@ export function DepositModal({ isOpen, onClose, onDepositSuccess }: DepositModal
               }}
             >
               <span className="relative z-10 flex items-center justify-center gap-2 text-[#0B0B0F]">
-                <Zap className="w-5 h-5" />
-                CONTINUAR PARA PAGAMENTO
+                {isProcessing ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#0B0B0F]"></div>
+                    PROCESSANDO...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-5 h-5" />
+                    DEPOSITAR AGORA
+                  </>
+                )}
               </span>
             </button>
 
