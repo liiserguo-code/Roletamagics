@@ -6,6 +6,7 @@ import { RouletteWheel } from "@/components/roulette-wheel"
 import { GameControls } from "@/components/game-controls"
 import { RegisterModal } from "@/components/register-modal"
 import { DepositModal } from "@/components/deposit-modal"
+import { WithdrawModal } from "@/components/withdraw-modal"
 import { FloatingNotification } from "@/components/floating-notification"
 import { useAudio } from "@/hooks/use-audio"
 import { User, LogOut } from "lucide-react"
@@ -16,6 +17,13 @@ interface AuthUser {
   phone: string
 }
 
+interface WithdrawRequest {
+  id: string
+  amount: number
+  status: 'pending' | 'completed' | 'failed'
+  timestamp: Date
+}
+
 export default function Home() {
   const { playSpin, playWin, playLoss } = useAudio()
   const [balance, setBalance] = useState(0)
@@ -24,8 +32,10 @@ export default function Home() {
   const [isSpinning, setIsSpinning] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
   const [showDeposit, setShowDeposit] = useState(false)
+  const [showWithdraw, setShowWithdraw] = useState(false)
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null)
   const [fastMode, setFastMode] = useState(false)
+  const [withdrawRequests, setWithdrawRequests] = useState<WithdrawRequest[]>([])
 
   // Check for existing session on mount
   useEffect(() => {
@@ -88,6 +98,22 @@ export default function Home() {
 
   const handleDepositSuccess = useCallback((amount: number) => {
     setBalance(prev => prev + amount)
+  }, [])
+
+  const handleWithdrawRequest = useCallback((amount: number) => {
+    // Deduct from balance immediately
+    setBalance(prev => prev - amount)
+    
+    // Create new withdraw request
+    const newRequest: WithdrawRequest = {
+      id: `withdraw-${Date.now()}`,
+      amount,
+      status: 'pending',
+      timestamp: new Date(),
+    }
+    
+    setWithdrawRequests(prev => [newRequest, ...prev])
+    setShowWithdraw(false)
   }, [])
 
   const handleBetChange = useCallback((amount: number) => {
@@ -195,7 +221,7 @@ export default function Home() {
           insufficientBalance={insufficientBalance}
           fastMode={fastMode}
           onToggleFastMode={() => setFastMode(!fastMode)}
-          onWithdraw={() => alert('Funcionalidade de saque em desenvolvimento')}
+          onWithdraw={() => setShowWithdraw(true)}
         />
       </div>
 
@@ -214,6 +240,15 @@ export default function Home() {
         isOpen={showDeposit}
         onClose={() => setShowDeposit(false)}
         onDepositSuccess={handleDepositSuccess}
+      />
+
+      {/* Withdraw modal */}
+      <WithdrawModal
+        isOpen={showWithdraw}
+        onClose={() => setShowWithdraw(false)}
+        balance={balance}
+        onWithdrawRequest={handleWithdrawRequest}
+        pendingWithdraws={withdrawRequests}
       />
     </main>
   )
