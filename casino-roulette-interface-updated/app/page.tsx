@@ -167,7 +167,7 @@ export default function Home() {
         </header>
 
         {/* Roulette wheel */}
-        <div className="flex-1 flex flex-col items-center justify-center py-4 gap-6">
+        <div className="flex-1 flex flex-col items-center justify-center py-4 gap-8">
           <RouletteWheel
             isSpinning={isSpinning}
             onSpin={handleSpin}
@@ -176,9 +176,14 @@ export default function Home() {
           
           {/* Spin button below wheel */}
           <button
-            onClick={handleSpin}
+            onClick={() => {
+              console.log("[v0] Spin button clicked")
+              console.log("[v0] Balance:", balance, "Bet Amount:", betAmount, "Is Spinning:", isSpinning)
+              const canSpin = handleSpin()
+              console.log("[v0] Can spin:", canSpin)
+            }}
             disabled={isSpinning}
-            className="relative px-12 py-4 rounded-2xl font-bold text-lg tracking-widest uppercase overflow-hidden group disabled:cursor-not-allowed"
+            className="relative px-12 py-4 rounded-2xl font-bold text-lg tracking-widest uppercase overflow-hidden group disabled:cursor-not-allowed disabled:opacity-50 hover:scale-105 transition-all duration-300"
             style={{
               background: isSpinning 
                 ? 'linear-gradient(135deg, #4A4A4A 0%, #2A2A2A 100%)'
@@ -230,12 +235,14 @@ export default function Home() {
             </span>
             
             {/* Hover effect */}
-            <div 
-              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%)',
-              }}
-            />
+            {!isSpinning && (
+              <div 
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%)',
+                }}
+              />
+            )}
           </button>
         </div>
 
