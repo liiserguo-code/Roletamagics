@@ -7,12 +7,13 @@ interface RouletteWheelProps {
   onSpinComplete?: (outerValue: string, innerValue: string) => void
   isSpinning: boolean
   onSpin: () => boolean
+  fastMode?: boolean
 }
 
 const OUTER_VALUES = ["0x", "2x", "5x", "10x", "15x", "20x", "50x"]
 const INNER_VALUES = ["1x", "2x", "3x", "4x"]
 
-export function RouletteWheel({ onSpinComplete, isSpinning, onSpin }: RouletteWheelProps) {
+export function RouletteWheel({ onSpinComplete, isSpinning, onSpin, fastMode = false }: RouletteWheelProps) {
   const [outerRotation, setOuterRotation] = useState(0)
   const [innerRotation, setInnerRotation] = useState(0)
   const [finalOuterValue, setFinalOuterValue] = useState<string | null>(null)
@@ -56,14 +57,14 @@ export function RouletteWheel({ onSpinComplete, isSpinning, onSpin }: RouletteWh
     setFinalOuterValue(null)
     setFinalInnerValue(null)
 
-    // Weighted probability for outer wheel (extremely high loss rate)
-    // 0x: 95%, 2x: 3%, 5x: 1.2%, 10x: 0.5%, 15x: 0.2%, 20x: 0.08%, 50x: 0.02%
-    const outerWeights = [95, 3, 1.2, 0.5, 0.2, 0.08, 0.02]
+    // Weighted probability for outer wheel (quase impossível ganhar)
+    // 0x: 98.5%, 2x: 1%, 5x: 0.3%, 10x: 0.15%, 15x: 0.04%, 20x: 0.009%, 50x: 0.001%
+    const outerWeights = [98.5, 1, 0.3, 0.15, 0.04, 0.009, 0.001]
     const outerFinal = pickWeightedIndex(outerWeights)
 
-    // Weighted probability for inner wheel (favors higher loss multipliers)
-    // 1x: 10%, 2x: 25%, 3x: 35%, 4x: 30%
-    const innerWeights = [10, 25, 35, 30]
+    // Weighted probability for inner wheel (favors maximum loss multipliers)
+    // 1x: 5%, 2x: 15%, 3x: 30%, 4x: 50%
+    const innerWeights = [5, 15, 30, 50]
     const innerFinal = pickWeightedIndex(innerWeights)
 
     // Make the wheel land on the CENTER of the chosen segment (with a small jitter),
@@ -71,8 +72,8 @@ export function RouletteWheel({ onSpinComplete, isSpinning, onSpin }: RouletteWh
     const outerSlice = 360 / OUTER_VALUES.length
     const innerSlice = 360 / INNER_VALUES.length
 
-    const outerSpins = 6 + rand() * 3
-    const innerSpins = 7 + rand() * 3
+    const outerSpins = fastMode ? 3 + rand() * 1 : 6 + rand() * 3
+    const innerSpins = fastMode ? 3.5 + rand() * 1 : 7 + rand() * 3
 
     const outerJitter = (rand() - 0.5) * outerSlice * 0.6
     const innerJitter = (rand() - 0.5) * innerSlice * 0.6
@@ -102,13 +103,14 @@ export function RouletteWheel({ onSpinComplete, isSpinning, onSpin }: RouletteWh
 
   useEffect(() => {
     if (isSpinning && finalOuterValue && finalInnerValue) {
+      const duration = fastMode ? 2500 : 5000
       const timer = setTimeout(() => {
         setShowResult(true)
         onSpinComplete?.(finalOuterValue, finalInnerValue)
-      }, 5000)
+      }, duration)
       return () => clearTimeout(timer)
     }
-  }, [isSpinning, finalOuterValue, finalInnerValue, onSpinComplete])
+  }, [isSpinning, finalOuterValue, finalInnerValue, onSpinComplete, fastMode])
 
   const isWin = showResult && finalOuterValue && finalOuterValue !== "0x"
   const isLoss = showResult && finalOuterValue === "0x"
@@ -190,7 +192,7 @@ export function RouletteWheel({ onSpinComplete, isSpinning, onSpin }: RouletteWh
             style={{
               background: 'linear-gradient(180deg, #1A1A24 0%, #0B0B0F 100%)',
               transform: `rotate(${outerRotation}deg)`,
-              transition: isSpinning ? 'transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none',
+              transition: isSpinning ? `transform ${fastMode ? '2.5s' : '5s'} cubic-bezier(0.17, 0.67, 0.12, 0.99)` : 'none',
               boxShadow: 'inset 0 0 40px rgba(0, 0, 0, 0.5)',
             }}
           >
@@ -303,7 +305,7 @@ export function RouletteWheel({ onSpinComplete, isSpinning, onSpin }: RouletteWh
             style={{
               background: 'radial-gradient(circle at 30% 30%, #1A1A24 0%, #0B0B0F 100%)',
               transform: `rotate(${innerRotation}deg)`,
-              transition: isSpinning ? 'transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none',
+              transition: isSpinning ? `transform ${fastMode ? '2.5s' : '5s'} cubic-bezier(0.17, 0.67, 0.12, 0.99)` : 'none',
               boxShadow: 'inset 0 0 20px rgba(0, 0, 0, 0.5)',
             }}
           >

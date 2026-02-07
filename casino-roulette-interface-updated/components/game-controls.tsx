@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Volume2, VolumeX, HelpCircle, Crown, Zap, TrendingUp, TrendingDown } from "lucide-react"
+import { Volume2, VolumeX, HelpCircle, Crown, Zap, TrendingUp, TrendingDown, ArrowDownToLine, Gauge } from "lucide-react"
 
 interface GameControlsProps {
   balance: number
@@ -10,9 +10,12 @@ interface GameControlsProps {
   onBetChange: (amount: number) => void
   onDeposit: () => void
   onRegister: () => void
+  onWithdraw: () => void
   isSpinning: boolean
   isLoggedIn?: boolean
   insufficientBalance?: boolean
+  fastMode?: boolean
+  onToggleFastMode?: () => void
 }
 
 const BET_OPTIONS = [0.50, 1.00, 2.00, 5.00, 10.00, 20.00]
@@ -24,12 +27,14 @@ export function GameControls({
   onBetChange,
   onDeposit,
   onRegister,
+  onWithdraw,
   isSpinning,
   isLoggedIn = false,
   insufficientBalance = false,
+  fastMode = false,
+  onToggleFastMode,
 }: GameControlsProps) {
   const [soundEnabled, setSoundEnabled] = useState(true)
-  const [mode] = useState("NORMAL")
 
   const isWin = gain !== null && gain > 0
   const isLoss = gain !== null && gain < 0
@@ -63,42 +68,68 @@ export function GameControls({
         </div>
       </div>
 
-      {/* Deposit button with enhanced effects */}
-      <button
-        onClick={onDeposit}
-        className={`w-full mb-4 py-3.5 px-6 rounded-xl font-bold text-sm tracking-wider relative overflow-hidden group transition-all duration-300 ${insufficientBalance ? 'animate-shake' : ''}`}
-        style={{
-          background: 'linear-gradient(135deg, #1A1A24 0%, #12121A 100%)',
-          border: insufficientBalance ? '2px solid rgba(220, 38, 38, 0.5)' : '1px solid rgba(212, 175, 55, 0.3)',
-          boxShadow: insufficientBalance 
-            ? '0 0 20px rgba(220, 38, 38, 0.3)' 
-            : '0 4px 15px rgba(0, 0, 0, 0.3)',
-        }}
-      >
-        <span className={`relative z-10 flex items-center justify-center gap-2 ${insufficientBalance ? 'text-[#DC2626]' : ''}`}>
-          <Zap className={`w-4 h-4 ${insufficientBalance ? 'text-[#DC2626]' : 'text-[#D4AF37]'}`} />
-          <span className={insufficientBalance ? 'text-[#DC2626]' : 'gold-text'}>
-            {insufficientBalance ? 'SALDO INSUFICIENTE - DEPOSITE' : 'DEPOSITAR'}
-          </span>
-        </span>
-        <div 
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+      {/* Deposit and Withdraw buttons */}
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={onDeposit}
+          className={`flex-1 py-3.5 px-6 rounded-xl font-bold text-sm tracking-wider relative overflow-hidden group transition-all duration-300 ${insufficientBalance ? 'animate-shake' : ''}`}
           style={{
-            background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, transparent 100%)',
+            background: 'linear-gradient(135deg, #1A1A24 0%, #12121A 100%)',
+            border: insufficientBalance ? '2px solid rgba(220, 38, 38, 0.5)' : '1px solid rgba(212, 175, 55, 0.3)',
+            boxShadow: insufficientBalance 
+              ? '0 0 20px rgba(220, 38, 38, 0.3)' 
+              : '0 4px 15px rgba(0, 0, 0, 0.3)',
           }}
-        />
-        {/* Animated border glow */}
-        <div className="absolute inset-0 rounded-xl animate-border-glow opacity-50" style={{ border: '1px solid rgba(212, 175, 55, 0.3)' }} />
-      </button>
+        >
+          <span className={`relative z-10 flex items-center justify-center gap-2 ${insufficientBalance ? 'text-[#DC2626]' : ''}`}>
+            <Zap className={`w-4 h-4 ${insufficientBalance ? 'text-[#DC2626]' : 'text-[#D4AF37]'}`} />
+            <span className={insufficientBalance ? 'text-[#DC2626]' : 'gold-text'}>
+              {insufficientBalance ? 'DEPOSITE' : 'DEPOSITAR'}
+            </span>
+          </span>
+          <div 
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            style={{
+              background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, transparent 100%)',
+            }}
+          />
+        </button>
 
-      {/* Mode selector with icon */}
-      <div className="glass-card rounded-xl p-3 mb-4 animate-border-glow">
-        <div className="flex items-center justify-center gap-3">
-          <Crown className="w-4 h-4 text-[#D4AF37]" />
-          <span className="text-[#A0A0A0] text-sm">Modo:</span>
-          <span className="gold-text font-bold tracking-wider">{mode}</span>
-        </div>
+        <button
+          onClick={onWithdraw}
+          className="py-3.5 px-4 rounded-xl font-bold text-xs tracking-wider relative overflow-hidden group transition-all duration-300 hover:scale-105"
+          style={{
+            background: 'linear-gradient(135deg, #1A1A24 0%, #12121A 100%)',
+            border: '1px solid rgba(5, 150, 105, 0.3)',
+            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)',
+          }}
+        >
+          <span className="relative z-10 flex items-center justify-center gap-1">
+            <ArrowDownToLine className="w-3 h-3 text-[#059669]" />
+            <span className="text-[#059669]">SAQUE</span>
+          </span>
+          <div 
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            style={{
+              background: 'linear-gradient(135deg, rgba(5, 150, 105, 0.15) 0%, transparent 100%)',
+            }}
+          />
+        </button>
       </div>
+
+      {/* Mode selector with toggle */}
+      <button
+        onClick={onToggleFastMode}
+        className="glass-card rounded-xl p-3 mb-4 animate-border-glow w-full hover:bg-white/5 transition-all duration-300 group"
+      >
+        <div className="flex items-center justify-center gap-3">
+          <Gauge className={`w-4 h-4 transition-colors ${fastMode ? 'text-[#DC2626]' : 'text-[#D4AF37]'}`} />
+          <span className="text-[#A0A0A0] text-sm">Modo:</span>
+          <span className={`font-bold tracking-wider transition-colors ${fastMode ? 'text-[#DC2626]' : 'gold-text'}`}>
+            {fastMode ? 'RÁPIDO' : 'NORMAL'}
+          </span>
+        </div>
+      </button>
 
       {/* Balance, Bet, and Gain with enhanced styling */}
       <div className="grid grid-cols-3 gap-3 mb-6">
