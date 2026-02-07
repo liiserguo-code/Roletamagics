@@ -2,23 +2,73 @@ import { useCallback, useRef, useEffect } from 'react'
 
 export function useAudio() {
   const audioContextRef = useRef<AudioContext | null>(null)
+  const initializedRef = useRef(false)
+  const buffersRef = useRef<{
+    spin: AudioBuffer | null
+    win: AudioBuffer | null
+    loss: AudioBuffer | null
+  }>({ spin: null, win: null, loss: null })
 
   useEffect(() => {
-    // Initialize Web Audio API
-    if (typeof window !== 'undefined') {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
-    }
-
-    return () => {
-      if (audioContextRef.current) {
-        audioContextRef.current.close()
+    // Initialize Web Audio API only once
+    if (typeof window !== 'undefined' && !initializedRef.current) {
+      try {
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
+        initializedRef.current = true
+        
+        // Pre-generate buffers
+        if (audioContextRef.current) {
+          buffersRef.current.spin = generateSpinBufferInternal(audioContextRef.current)
+          buffersRef.current.win = generateWinBufferInternal(audioContextRef.current)
+          buffersRef.current.loss = generateLossBufferInternal(audioContextRef.current)
+        }
+      } catch (e) {
+        console.error('Failed to initialize audio:', e)
       }
     }
   }, [])
 
-  const generateSpinBuffer = useCallback(() => {
-    if (!audioContextRef.current) return null
-    const audioContext = audioContextRef.current
+  const playSpin = useCallback(() => {
+    if (!audioContextRef.current || !buffersRef.current.spin) return
+    try {
+      const source = audioContextRef.current.createBufferSource()
+      source.buffer = buffersRef.current.spin
+      source.connect(audioContextRef.current.destination)
+      source.start(0)
+    } catch (err) {
+      // Silently fail if audio can't play
+    }
+  }, [])
+
+  const playWin = useCallback(() => {
+    if (!audioContextRef.current || !buffersRef.current.win) return
+    try {
+      const source = audioContextRef.current.createBufferSource()
+      source.buffer = buffersRef.current.win
+      source.connect(audioContextRef.current.destination)
+      source.start(0)
+    } catch (err) {
+      // Silently fail if audio can't play
+    }
+  }, [])
+
+  const playLoss = useCallback(() => {
+    if (!audioContextRef.current || !buffersRef.current.loss) return
+    try {
+      const source = audioContextRef.current.createBufferSource()
+      source.buffer = buffersRef.current.loss
+      source.connect(audioContextRef.current.destination)
+      source.start(0)
+    } catch (err) {
+      // Silently fail if audio can't play
+    }
+  }, [])
+
+  return { playSpin, playWin, playLoss }
+}
+
+function generateSpinBufferInternal(audioContext: AudioContext): AudioBuffer | null {
+  try {
     const duration = 4.5
     const sampleRate = audioContext.sampleRate
     const numSamples = sampleRate * duration
@@ -33,11 +83,13 @@ export function useAudio() {
     }
 
     return buffer
-  }, [])
+  } catch (e) {
+    return null
+  }
+}
 
-  const generateWinBuffer = useCallback(() => {
-    if (!audioContextRef.current) return null
-    const audioContext = audioContextRef.current
+function generateWinBufferInternal(audioContext: AudioContext): AudioBuffer | null {
+  try {
     const duration = 1.5
     const sampleRate = audioContext.sampleRate
     const numSamples = sampleRate * duration
@@ -52,11 +104,13 @@ export function useAudio() {
     }
 
     return buffer
-  }, [])
+  } catch (e) {
+    return null
+  }
+}
 
-  const generateLossBuffer = useCallback(() => {
-    if (!audioContextRef.current) return null
-    const audioContext = audioContextRef.current
+function generateLossBufferInternal(audioContext: AudioContext): AudioBuffer | null {
+  try {
     const duration = 1
     const sampleRate = audioContext.sampleRate
     const numSamples = sampleRate * duration
@@ -71,52 +125,9 @@ export function useAudio() {
     }
 
     return buffer
-  }, [])
-
-  const playSpin = useCallback(() => {
-    if (!audioContextRef.current) return
-    try {
-      const buffer = generateSpinBuffer()
-      if (!buffer) return
-      
-      const source = audioContextRef.current.createBufferSource()
-      source.buffer = buffer
-      source.connect(audioContextRef.current.destination)
-      source.start(0)
-    } catch (err) {
-      console.error('Failed to play spin sound:', err)
-    }
-  }, [generateSpinBuffer])
-
-  const playWin = useCallback(() => {
-    if (!audioContextRef.current) return
-    try {
-      const buffer = generateWinBuffer()
-      if (!buffer) return
-      
-      const source = audioContextRef.current.createBufferSource()
-      source.buffer = buffer
-      source.connect(audioContextRef.current.destination)
-      source.start(0)
-    } catch (err) {
-      console.error('Failed to play win sound:', err)
-    }
-  }, [generateWinBuffer])
-
-  const playLoss = useCallback(() => {
-    if (!audioContextRef.current) return
-    try {
-      const buffer = generateLossBuffer()
-      if (!buffer) return
-      
-      const source = audioContextRef.current.createBufferSource()
-      source.buffer = buffer
-      source.connect(audioContextRef.current.destination)
-      source.start(0)
-    } catch (err) {
-      console.error('Failed to play loss sound:', err)
-    }
-  }, [generateLossBuffer])
-
-  return { playSpin, playWin, playLoss }
+  } catch (e) {
+    return null
+  }
 }
+
+
